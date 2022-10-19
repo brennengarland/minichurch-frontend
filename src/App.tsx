@@ -8,7 +8,12 @@ import { CREATE_MEAL, GET_PEOPLE, People, Person } from './backend/graphql';
 import RHFDateField from './components/FormComponents/RHFDateField';
 
 export default function App() {
-  const { handleSubmit, ...methods } = useForm();
+  const { handleSubmit, ...methods } = useForm({defaultValues: {
+    mealName: "",
+    person: "",
+    date: "",
+    category: "",
+  }});
 
 
   const [createMeal] = useMutation(CREATE_MEAL);
@@ -53,7 +58,7 @@ export default function App() {
             <Stack spacing={2}>
               <Typography variant="h2">Mini-Church Meal Sign-Up</Typography>
               <RHFTextField name="mealName" required={true} label="Meal Name" />
-              <RHFSelectField name="person" required={true} label="Who are you?">
+              <RHFSelectField name="person" required={true} label="Your Name">
                 {peopleMenuItems} 
               </RHFSelectField>
               <RHFDateField name="date" required={true} label="Date" />

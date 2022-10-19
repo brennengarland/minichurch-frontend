@@ -25,14 +25,13 @@ export default function RHFDateField({ name, required, label, children }: Props)
         name,
         control,
         rules: { required: required },
-        defaultValue: "",
     });
 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker
                 label={label}
-                value={value}
+                value={value || null}
                 onChange={onChange}
                 inputRef={ref}
                 disablePast
