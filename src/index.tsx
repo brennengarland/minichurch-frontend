@@ -5,7 +5,7 @@ import reportWebVitals from './reportWebVitals';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import * as ReactDOM from 'react-dom/client';
 
-const DEV_URL = 'http://localhost:4000';
+// const DEV_URL = 'http://localhost:4000';
 const PROD_URL = 'https://minichurch-backend.onrender.com'
 
 const client = new ApolloClient({
