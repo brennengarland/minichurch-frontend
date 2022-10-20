@@ -6,7 +6,7 @@ import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import * as ReactDOM from 'react-dom/client';
 
 // const DEV_URL = 'http://localhost:4000';
-const PROD_URL = 'https://minichurch-backend.onrender.com'
+const PROD_URL = 'https://minichurch-backend.onrender.com/graphql'
 
 const client = new ApolloClient({
   uri: PROD_URL,
