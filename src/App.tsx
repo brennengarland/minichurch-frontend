@@ -19,7 +19,7 @@ export default function App() {
   }});
 
 
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
 
 
   const [createMeal] = useMutation(CREATE_MEAL);
