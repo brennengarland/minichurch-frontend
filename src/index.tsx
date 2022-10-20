@@ -4,6 +4,8 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import * as ReactDOM from 'react-dom/client';
+import { SnackbarProvider } from 'notistack';
+
 
 // const DEV_URL = 'http://localhost:4000';
 const PROD_URL = 'https://minichurch-backend.onrender.com/graphql'
@@ -19,7 +21,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <ApolloProvider client={client}>
-      <App />
+      <SnackbarProvider maxSnack={1}>
+        <App />
+      </SnackbarProvider>
     </ApolloProvider>
   </React.StrictMode>
 );

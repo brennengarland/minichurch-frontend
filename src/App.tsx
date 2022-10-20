@@ -6,14 +6,20 @@ import RHFSelectField from './components/FormComponents/RHFSelectField';
 import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_MEAL, GET_PEOPLE, People, Person } from './backend/graphql';
 import RHFDateField from './components/FormComponents/RHFDateField';
+import { useSnackbar } from 'notistack';
+
+
 
 export default function App() {
-  const { handleSubmit, ...methods } = useForm({defaultValues: {
+  const { handleSubmit, reset, ...methods } = useForm({defaultValues: {
     mealName: "",
     person: "",
     date: "",
     category: "",
   }});
+
+
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
 
   const [createMeal] = useMutation(CREATE_MEAL);
@@ -29,7 +35,10 @@ export default function App() {
     }
     createMeal({ variables: {
       meal: meal
-    }})
+    }});
+    reset();
+    enqueueSnackbar("Meal Added", {variant: "success"});
+    
   }
   let peopleMenuItems = null;
   const { data, loading, error } = useQuery<People, {}>(GET_PEOPLE);
@@ -51,7 +60,7 @@ export default function App() {
 
     return (
       <Container>
-        <FormProvider {...methods} handleSubmit={handleSubmit}>
+        <FormProvider {...methods} handleSubmit={handleSubmit} reset={reset}>
           <form onSubmit={
             handleSubmit(handleCreateMeal)
           }>
