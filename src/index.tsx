@@ -7,11 +7,11 @@ import * as ReactDOM from 'react-dom/client';
 import { SnackbarProvider } from 'notistack';
 
 
-// const DEV_URL = 'http://localhost:4000';
+const DEV_URL = 'http://localhost:4000/graphql';
 const PROD_URL = 'https://minichurch-backend.onrender.com/graphql'
 
 const client = new ApolloClient({
-  uri: PROD_URL,
+  uri: DEV_URL,
   cache: new InMemoryCache(),
 });
 
@@ -21,7 +21,11 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <ApolloProvider client={client}>
-      <SnackbarProvider maxSnack={1}>
+      <SnackbarProvider maxSnack={1} 
+  anchorOrigin={{
+    vertical: 'top',
+    horizontal: 'right',
+  }}>
         <App />
       </SnackbarProvider>
     </ApolloProvider>

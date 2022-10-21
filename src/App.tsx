@@ -1,32 +1,84 @@
 import './App.css';
-import { Button, Container, MenuItem, Stack, Typography } from '@mui/material';
+import { Avatar, Button, Chip, Container, Divider, MenuItem, Stack, Typography } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import RHFTextField from './components/FormComponents/RHFTextField';
 import RHFSelectField from './components/FormComponents/RHFSelectField';
-import { useMutation, useQuery } from '@apollo/client';
-import { CREATE_MEAL, GET_PEOPLE, People, Person } from './backend/graphql';
+import { gql, useMutation, useQuery } from '@apollo/client';
+import { CREATE_MEAL, CREATE_PERSON, GET_PEOPLE, Meal, People, Person, GET_MEALS } from './backend/graphql';
 import RHFDateField from './components/FormComponents/RHFDateField';
 import { useSnackbar } from 'notistack';
+import { useEffect, useState } from 'react';
+import RHFPhoneNumber from './components/FormComponents/RHFPhoneNumber';
+import RHFEmail from './components/FormComponents/RHFEmailField';
 
-
+enum NewStatus {
+  NEW,
+  SUBMITTED,
+  UNKNOWN
+}
 
 export default function App() {
-  const { handleSubmit, reset, ...methods } = useForm({defaultValues: {
-    mealName: "",
-    person: "",
-    date: "",
-    category: "",
-  }});
+  const [newPerson, setNewPerson] = useState<NewStatus>(NewStatus.UNKNOWN);
+  const [date, setDate] = useState<string>();
+  const addNewPerson = () => setNewPerson(NewStatus.NEW);
+  const newPersonAdded = () => setNewPerson(NewStatus.SUBMITTED);
+
+  const { data: mealsData} = useQuery(GET_MEALS);
+  console.log(mealsData);
+  const { handleSubmit: handleSubmitPerson, reset: resetPerson, ...personMethods } = useForm();
+  const [createPerson] = useMutation(CREATE_PERSON, {
+    update(cache, { data: { createPerson } }) {
+      setValue('person', createPerson._id)
+      cache.modify({
+        fields: {
+          people(existingPeople = []) {
+            const newPersonRef = cache.writeFragment({
+              data: createPerson,
+              fragment: gql`
+                fragment NewPerson on Person {
+                  _id
+                  name
+                }
+              `
+            });
+            return [...existingPeople, newPersonRef];
+          }
+        }
+      });
+    }
+  });
+
+  const handleCreatePerson = (data: any) => {
+    let person = {
+      name: data.name,
+      email: data.email,
+      phoneNumber: data.phoneNumber
+    }
+    createPerson({ variables: {
+      person: person
+    }});
+    resetPerson();
+    enqueueSnackbar("You've been added, welcome!", {variant: "info"});
+    newPersonAdded();
+  }
 
 
   const { enqueueSnackbar } = useSnackbar();
 
 
   const [createMeal] = useMutation(CREATE_MEAL);
-
-  const handleCreateMeal = (data: any, e: any) => {
-    console.log("Form Submitted!")
-    console.log(data)
+  console.log(newPerson)
+  const { handleSubmit: handleSubmitMeal, reset: resetMeal, setValue, getValues, watch, ...mealMethods } = useForm({defaultValues: {
+    mealName: "",
+    person:  "",
+    date: "",
+    category: "",
+  }});
+  const dateField = watch('date');
+  useEffect(() => {
+    setDate(dateField);
+  }, [dateField]);
+  const handleCreateMeal = (data: any) => {
     let meal = {
       name: data.mealName,
       category: data.category.toUpperCase(),
@@ -36,12 +88,12 @@ export default function App() {
     createMeal({ variables: {
       meal: meal
     }});
-    reset();
+    resetMeal();
     enqueueSnackbar("Meal Added", {variant: "success"});
-    
+    refetchPeople();
   }
   let peopleMenuItems = null;
-  const { data, loading, error } = useQuery<People, {}>(GET_PEOPLE);
+  const { data, loading, error, refetch: refetchPeople } = useQuery<People, {}>(GET_PEOPLE);
   if (loading) return <div>Loading People</div>;
   if (error) return <div>{error.message}</div>;
   if (data) {
@@ -51,33 +103,72 @@ export default function App() {
       </MenuItem>
     ))
   }
-
-  const courseMenuItems = ["Entree", 'Side', 'Dessert'].map((course) => (
-    <MenuItem key={`course-${course}`} value={course}>
-      {course}
+  let coursesNeeded = {
+    "Entree": 2,
+    "Side": 2,
+    "Dessert": 1
+  }
+  if(mealsData && date) {
+    console.log(mealsData)
+      const datesMeals = mealsData.meals.filter((meal: Meal) => (new Date(date)).toISOString().split('T')[0] === meal.date)
+      console.log(datesMeals)
+      const entreesOnDate = datesMeals.filter((meal: Meal) => meal.course.toString() === "ENTREE")
+      const sidesOnDate = datesMeals.filter((meal: Meal) => meal.course.toString() === "SIDE")
+      const dessertsOnDate = datesMeals.filter((meal: Meal) => meal.course.toString() === "DESSERT");
+      console.log(sidesOnDate.length);
+      coursesNeeded = {
+        "Entree": Math.max(0, coursesNeeded.Entree - entreesOnDate.length),
+        "Side": Math.max(0, coursesNeeded.Side - sidesOnDate.length),
+        "Dessert": Math.max(0, coursesNeeded.Dessert - dessertsOnDate.length),
+      }
+  }
+  const courseMenuItems = Object.entries(coursesNeeded).map((course) => (
+    <MenuItem key={`course-${course[0]}`} value={course[0]}>
+      {course[0]}
+      <Chip variant="outlined" color="warning" size="small" label="needed" avatar={<Avatar>{course[1]}</Avatar>} />
     </MenuItem>
   ));
 
     return (
       <Container>
-        <FormProvider {...methods} handleSubmit={handleSubmit} reset={reset}>
-          <form onSubmit={
-            handleSubmit(handleCreateMeal)
-          }>
             <Stack spacing={2}>
               <Typography variant="h2">Mini-Church Meal Sign-Up</Typography>
-              <RHFTextField name="mealName" required={true} label="Meal Name" />
-              <RHFSelectField name="person" required={true} label="Your Name">
-                {peopleMenuItems} 
-              </RHFSelectField>
-              <RHFDateField name="date" required={true} label="Date" />
-              <RHFSelectField name='category' label='Course' required={true}>
-                {courseMenuItems}
-              </RHFSelectField>
-              <Button type="submit" variant="contained">Submit</Button>
-            </Stack>
-          </form>
-        </FormProvider>
+              { newPerson === NewStatus.NEW ?
+              <FormProvider {...personMethods} handleSubmit={handleSubmitPerson} reset={resetPerson}>
+                <form onSubmit={
+                  handleSubmitPerson(handleCreatePerson)
+                }>
+                  <Stack direction="row" spacing={2}>
+                  <RHFTextField name="name" required={true} label="Full Name" />
+                  <RHFEmail name="email" required={true} label="Email" />
+                  <RHFPhoneNumber name="phoneNumber" required={true} label="Phone Number" />
+                  <Button type="submit" variant="outlined">Add</Button>
+                  </Stack>
+                </form>
+              </FormProvider>
+              : 
+              <Button variant="contained" onClick={addNewPerson} disabled={newPerson === NewStatus.SUBMITTED}>I'm New!</Button>
+              }
+              <Divider />
+
+            <FormProvider {...mealMethods} handleSubmit={handleSubmitMeal} watch={watch} reset={resetMeal} setValue={setValue} getValues={getValues}>
+              <form onSubmit={
+                handleSubmitMeal(handleCreateMeal)
+              }>
+                <Stack spacing={2}>
+                  <RHFTextField name="mealName" required={true} label="Meal Name" />
+                  <RHFSelectField name="person" required={true} label="Your Name">
+                    {peopleMenuItems} 
+                  </RHFSelectField>
+                  <RHFDateField name="date" required={true} label="Date" />
+                  <RHFSelectField name='category' label='Course' required={true}>
+                    {courseMenuItems}
+                  </RHFSelectField>
+                  <Button type="submit" variant='outlined'>Submit</Button>
+                </Stack>
+            </form>
+          </FormProvider>
+        </Stack>
       </Container>
     );
 }

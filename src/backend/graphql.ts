@@ -24,7 +24,7 @@ export enum Course {
 export interface Meal {
     id: string,
     title: string,
-    date: Date,
+    date: string,
     course: Course,
     people: {id: string}[]
 }
@@ -46,7 +46,30 @@ export const GET_PEOPLE = gql`
 `;
 
 export const CREATE_MEAL = gql`
-mutation Mutation($meal: MealInput) {
+mutation CreateMeal($meal: MealInput) {
     createMeal(meal: $meal)
   }
 `;
+
+export const CREATE_PERSON = gql`
+mutation CreatePerson($person: PersonInput) {
+    createPerson(person: $person) {
+      _id
+      name
+      email
+      phone
+    }
+  }
+`;
+
+export const GET_MEALS = gql`
+    query Query {
+    meals {
+        _id
+        name
+        course
+        date
+    }
+}
+
+`
