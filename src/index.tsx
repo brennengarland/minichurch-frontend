@@ -5,13 +5,10 @@ import reportWebVitals from './reportWebVitals';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import * as ReactDOM from 'react-dom/client';
 import { SnackbarProvider } from 'notistack';
-
-
-const DEV_URL = 'http://localhost:4000/graphql';
 const PROD_URL = 'https://minichurch-backend.onrender.com/graphql'
 
 const client = new ApolloClient({
-  uri: DEV_URL,
+  uri: PROD_URL,
   cache: new InMemoryCache(),
 });
 
