@@ -172,7 +172,7 @@ export default function App() {
                   <RHFSelectField name='category' label='Course' required={true} InputProps={{
             endAdornment: (
               <React.Fragment>
-                {loadingPeople ? <CircularProgress color="inherit" size={20} /> : null}
+                {loadingPeople ? <CircularProgress color="inherit" size={20} sx={{marginRight:'3%'}} /> : null}
               </React.Fragment>
             )
           }}>
