@@ -1,4 +1,4 @@
-import { TextField } from "@mui/material";
+import { TextField, TextFieldProps } from "@mui/material";
 import { ReactNode } from "react";
 import { useController, useFormContext } from "react-hook-form";
 
@@ -9,7 +9,7 @@ interface Props {
     children?: ReactNode
 }
 
-export default function RHFTextField({ name, required, label, children }: Props) {
+export default function RHFTextField({ name, required, label, children, ...rest }: Props & TextFieldProps) {
 
     const { control } = useFormContext();
     const {
@@ -31,6 +31,7 @@ export default function RHFTextField({ name, required, label, children }: Props)
             inputRef={ref} // send input ref, so we can focus on input when error appear
             select
             label={label}
+            {...rest}
         >
             {children}
         </TextField>

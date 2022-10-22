@@ -1,5 +1,5 @@
 import './App.css';
-import { Avatar, Button, Chip, Container, Divider, MenuItem, Stack, Typography } from '@mui/material';
+import { Avatar, Button, Chip, CircularProgress, Container, Divider, MenuItem, Stack, Typography } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import RHFTextField from './components/FormComponents/RHFTextField';
 import RHFSelectField from './components/FormComponents/RHFSelectField';
@@ -10,6 +10,7 @@ import { useSnackbar } from 'notistack';
 import { useEffect, useState } from 'react';
 import RHFPhoneNumber from './components/FormComponents/RHFPhoneNumber';
 import RHFEmail from './components/FormComponents/RHFEmailField';
+import React from 'react';
 
 enum NewStatus {
   NEW,
@@ -23,7 +24,7 @@ export default function App() {
   const addNewPerson = () => setNewPerson(NewStatus.NEW);
   const newPersonAdded = () => setNewPerson(NewStatus.SUBMITTED);
 
-  const { data: mealsData} = useQuery(GET_MEALS);
+  const { data: mealsData, loading: loadingMeals} = useQuery(GET_MEALS);
   console.log(mealsData);
   const { handleSubmit: handleSubmitPerson, reset: resetPerson, ...personMethods } = useForm();
   const [createPerson] = useMutation(CREATE_PERSON, {
@@ -93,8 +94,7 @@ export default function App() {
     refetchPeople();
   }
   let peopleMenuItems = null;
-  const { data, loading, error, refetch: refetchPeople } = useQuery<People, {}>(GET_PEOPLE);
-  if (loading) return <div>Loading People</div>;
+  const { data, loading: loadingPeople, error, refetch: refetchPeople } = useQuery<People, {}>(GET_PEOPLE);
   if (error) return <div>{error.message}</div>;
   if (data) {
     peopleMenuItems = data.people.map((person: Person) => (
@@ -124,8 +124,10 @@ export default function App() {
   }
   const courseMenuItems = Object.entries(coursesNeeded).map((course) => (
     <MenuItem key={`course-${course[0]}`} value={course[0]}>
-      {course[0]}
-      <Chip variant="outlined" color="warning" size="small" label="needed" avatar={<Avatar>{course[1]}</Avatar>} />
+      <Stack direction="row" spacing={3}>
+        <span>{course[0]}</span>
+        <Chip variant="outlined" color="warning" size="small" label="needed" avatar={<Avatar>{course[1]}</Avatar>} />
+      </Stack>
     </MenuItem>
   ));
 
@@ -157,11 +159,23 @@ export default function App() {
               }>
                 <Stack spacing={2}>
                   <RHFTextField name="mealName" required={true} label="Meal Name" />
-                  <RHFSelectField name="person" required={true} label="Your Name">
+                  <RHFSelectField name="person" required={true} label="Your Name" InputProps={{
+            endAdornment: (
+              <React.Fragment>
+                {loadingMeals ? <CircularProgress color="inherit" size={20} sx={{marginRight:'3%'}} /> : null}
+              </React.Fragment>
+            )
+          }}>
                     {peopleMenuItems} 
                   </RHFSelectField>
                   <RHFDateField name="date" required={true} label="Date" />
-                  <RHFSelectField name='category' label='Course' required={true}>
+                  <RHFSelectField name='category' label='Course' required={true} InputProps={{
+            endAdornment: (
+              <React.Fragment>
+                {loadingPeople ? <CircularProgress color="inherit" size={20} /> : null}
+              </React.Fragment>
+            )
+          }}>
                     {courseMenuItems}
                   </RHFSelectField>
                   <Button type="submit" variant='outlined'>Submit</Button>
