@@ -14,7 +14,6 @@ interface Props {
 export default function RHFDateField({ name, required, label, children }: Props) {
 
     function disableDate (date: any) {
-        console.log(typeof date);
         return date.getDay() !== 3
     }
 

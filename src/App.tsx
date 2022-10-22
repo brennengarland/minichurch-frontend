@@ -1,5 +1,5 @@
 import './App.css';
-import { Avatar, Button, Chip, CircularProgress, Container, Divider, MenuItem, Stack, Typography } from '@mui/material';
+import { Avatar, Button, Chip, CircularProgress, Container, Divider, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
 import RHFTextField from './components/FormComponents/RHFTextField';
 import RHFSelectField from './components/FormComponents/RHFSelectField';
@@ -25,7 +25,6 @@ export default function App() {
   const newPersonAdded = () => setNewPerson(NewStatus.SUBMITTED);
 
   const { data: mealsData, loading: loadingMeals} = useQuery(GET_MEALS);
-  console.log(mealsData);
   const { handleSubmit: handleSubmitPerson, reset: resetPerson, ...personMethods } = useForm();
   const [createPerson] = useMutation(CREATE_PERSON, {
     update(cache, { data: { createPerson } }) {
@@ -68,7 +67,6 @@ export default function App() {
 
 
   const [createMeal] = useMutation(CREATE_MEAL);
-  console.log(newPerson)
   const { handleSubmit: handleSubmitMeal, reset: resetMeal, setValue, getValues, watch, ...mealMethods } = useForm({defaultValues: {
     mealName: "",
     person:  "",
@@ -109,13 +107,10 @@ export default function App() {
     "Dessert": 1
   }
   if(mealsData && date) {
-    console.log(mealsData)
-      const datesMeals = mealsData.meals.filter((meal: Meal) => (new Date(date)).toISOString().split('T')[0] === meal.date)
-      console.log(datesMeals)
+      const datesMeals = mealsData.meals.filter((meal: Meal) => (new Date(date)).toISOString().split('T')[0] === meal.date.split('T')[0])
       const entreesOnDate = datesMeals.filter((meal: Meal) => meal.course.toString() === "ENTREE")
       const sidesOnDate = datesMeals.filter((meal: Meal) => meal.course.toString() === "SIDE")
       const dessertsOnDate = datesMeals.filter((meal: Meal) => meal.course.toString() === "DESSERT");
-      console.log(sidesOnDate.length);
       coursesNeeded = {
         "Entree": Math.max(0, coursesNeeded.Entree - entreesOnDate.length),
         "Side": Math.max(0, coursesNeeded.Side - sidesOnDate.length),
@@ -159,25 +154,20 @@ export default function App() {
               }>
                 <Stack spacing={2}>
                   <RHFTextField name="mealName" required={true} label="Meal Name" />
-                  <RHFSelectField name="person" required={true} label="Your Name" InputProps={{
-            endAdornment: (
-              <React.Fragment>
-                {loadingMeals ? <CircularProgress color="inherit" size={20} sx={{marginRight:'3%'}} /> : null}
-              </React.Fragment>
-            )
-          }}>
-                    {peopleMenuItems} 
-                  </RHFSelectField>
+
+                  {loadingPeople 
+                  ? <TextField label='Name' disabled InputProps={{endAdornment: <CircularProgress size='2rem' />}} />
+                  : <RHFSelectField name='person' label='Name' required={true}>
+                    {peopleMenuItems}
+                    </RHFSelectField>
+                  }
                   <RHFDateField name="date" required={true} label="Date" />
-                  <RHFSelectField name='category' label='Course' required={true} InputProps={{
-            endAdornment: (
-              <React.Fragment>
-                {loadingPeople ? <CircularProgress color="inherit" size={20} sx={{marginRight:'3%'}} /> : null}
-              </React.Fragment>
-            )
-          }}>
+                  {loadingMeals 
+                  ? <TextField label='Course' disabled InputProps={{endAdornment: <CircularProgress size='2rem' />}} />
+                  : <RHFSelectField name='category' label='Course' required={true}>
                     {courseMenuItems}
-                  </RHFSelectField>
+                    </RHFSelectField>
+                  }
                   <Button type="submit" variant='outlined'>Submit</Button>
                 </Stack>
             </form>
