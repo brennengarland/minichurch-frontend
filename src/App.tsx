@@ -135,7 +135,7 @@ export default function App() {
                 <form onSubmit={
                   handleSubmitPerson(handleCreatePerson)
                 }>
-                  <Stack direction="row" spacing={2}>
+                  <Stack direction={{xs:"column", lg:"row"}} spacing={2}>
                   <RHFTextField name="name" required={true} label="Full Name" />
                   <RHFEmail name="email" required={true} label="Email" />
                   <RHFPhoneNumber name="phoneNumber" required={true} label="Phone Number" />
